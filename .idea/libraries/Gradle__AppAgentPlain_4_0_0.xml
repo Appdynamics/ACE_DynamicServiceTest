@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gradle: AppAgentPlain-4.0.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../maven/private-artifact-library/repo/com/appdynamics/agent/develop/AppAgentPlain/4.0.0/AppAgentPlain-4.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,159 @@
+
+
+configurations {
+    obfuscate
+    obfuscateRun
+}
+// ///////////////////////
+//   Obfuscation Code !!!!
+// ///////////////////////
+import groovy.json.*
+
+import java.util.zip.ZipFile
+
+String findMap(def version) {
+    def l = [];
+    configurations.obfuscate.filter { it.toString().endsWith("ObfuscationMapping-"+version+".map") }.each{l += it}
+
+    return l[0]?.absolutePath
+}
+
+String findAgent(def version) {
+    def l = [];
+    configurations.obfuscate.filter {
+        println "-->"+it
+        it.toString().endsWith("AppAgent-"+version+".jar") }.each{l += it}
+
+    return l[0]?.absolutePath
+}
+
+String generateObfuscatedJarName(def version)  {
+    def n2 = version.replace(".","_")
+    def n = jar.archiveName - ("."+jar.extension)
+    def n3 = n+"_agent_"+n2+"."+jar.extension
+    return n3;
+}
+
+
+def downloadFile(json,id,filename) {
+    def file = json.find { item ->
+        return item?.id?.contains(id)
+    }
+
+    if (file == null) {
+        println "Couldn't find $filename : Query $id"
+    } else {
+        println "Downloading : $file.url "
+
+        def target = new FileOutputStream(filename)
+        def out = new BufferedOutputStream(target)
+        out << new URL(file.url).openStream()
+        out.close()
+
+    }
+}
+
+String downloadAgentMap(def version) {
+
+    def outputDir = new File("./build/temp/${version}")
+    outputDir.mkdirs();
+
+    def agentMap = new File(outputDir,"agentChangelogZKM.txt")
+    if (agentMap.exists()) return agentMap.absolutePath
+
+    def url = "http://leeroy-jenkins.corp.appdynamics.com/view/All/job/${version}.next-publish/lastSuccessfulBuild/artifact/artifacts.json"
+    def json = new JsonSlurper().parseText(new URL(url).text)
+    downloadFile (json,"com.appdynamics.agent:app-server-agent-obfuscated-zkm-changelog:","${outputDir.absolutePath}/agentChangelogZKM.txt")
+
+    if (agentMap.exists()) return agentMap.absolutePath
+    else return null;
+
+}
+
+
+String downloadAgent(def version) {
+
+    def outputDir = new File("./build/temp/${version}")
+    outputDir.mkdirs();
+
+    def agentFile = new File(outputDir,"agent.zip")
+
+    if (!agentFile.exists()) {
+
+        def url = "http://leeroy-jenkins.corp.appdynamics.com/view/All/job/${version}.next-publish/lastSuccessfulBuild/artifact/artifacts.json"
+        def json = new JsonSlurper().parseText(new URL(url).text)
+        downloadFile(json, "com.appdynamics.agent:app-server-agent-obfuscated:", "${outputDir.absolutePath}/agent.zip")
+    }
+    if (agentFile.exists()) {
+        def zf = new ZipFile(agentFile)
+
+        def fn = zf.entries().find {it.name.endsWith("appagent.jar")}
+
+
+        ant.unzip(  src:agentFile.absolutePath,
+                dest:outputDir.absolutePath,
+                overwrite:"true" )
+
+
+        return outputDir.absolutePath+"/"+fn
+    }
+    else return null;
+
+}
+
+tasks.addRule("Pattern: obfuscate-<ID>") { String taskName ->
+    if (taskName.startsWith("obfuscate")) {
+        task(taskName, dependsOn: 'jar') << {
+            //
+            // move this to a propper task definition later
+            //
+            def v = (taskName - 'obfuscate-')
+            println "Obfuscating: " + v
+            println "this:"+this;
+
+            def agentFile = findAgent(v);
+            def agentMapFile = findMap(v);
+
+
+            if (agentMapFile == null) {
+                agentMapFile = downloadAgentMap(v);
+            }
+            if (agentFile == null) {
+                agentFile = downloadAgent(v);
+            }
+
+
+            if (agentFile == null || agentMapFile == null) {
+                println "Missing either agent or map information. Please check!"
+                println "Using agent : ${agentFile}"
+                println "Using ZKM Map : ${agentMapFile}"
+                return;
+            }
+
+            agentFile = "file://"+agentFile;
+            agentMapFile = "file://"+agentMapFile;
+
+            println "Using agent : ${agentFile}"
+            println "Using ZKM Map : ${agentMapFile}"
+
+
+
+
+
+
+            javaexec {
+                classpath = configurations.obfuscateRun
+                main = 'com.singularity.ee.obsfucation.adapter.Translator'
+                file("build/obfuscated").mkdirs();
+                args = [
+                        "-version" , v,
+                        "-inputJar" , jar.archivePath,
+                        "-outputJar" , file("build/obfuscated/"+generateObfuscatedJarName(v)),
+                        "-jarUrl", agentFile,
+                        "-zkmUrl", agentMapFile ];
+            }
+        }
+    }
+}
+
+

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gradle: Log4J-3.7.15">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../maven/private-artifact-library/repo/com/appdynamics/develop/Log4J/3.7.15/Log4J-3.7.15.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
