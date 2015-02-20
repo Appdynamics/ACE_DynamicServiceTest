@@ -29,8 +29,8 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'SimpleTest Service',
-                'implementation-class-name': 'com.appdynamics.ace.test.dynservice.TestService'
+        attributes 'Implementation-Title': 'Instrumentation Test Service',
+                'implementation-class-name': 'com.appdynamics.ace.test.dynservice.TestInstrumentationService'
     }
 }
 

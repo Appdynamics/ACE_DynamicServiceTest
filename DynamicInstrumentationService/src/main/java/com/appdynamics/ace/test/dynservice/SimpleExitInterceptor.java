@@ -4,11 +4,24 @@ import com.appdynamics.apm.appagent.api.ITransactionDemarcator;
 import com.singularity.ee.agent.appagent.entrypoint.bciengine.FastInterceptorClassRegistryBoot;
 import com.singularity.ee.agent.appagent.kernel.JavaAgent;
 import com.singularity.ee.agent.appagent.services.bciengine.AFastTrackedMethodInterceptor;
+import com.singularity.ee.agent.appagent.services.transactionmonitor.common.CorrelationHeader;
+import com.singularity.ee.agent.appagent.services.transactionmonitor.common.CurrentExitCall;
+import com.singularity.ee.agent.appagent.services.transactionmonitor.http.correlation.AHTTPCorrelationInterceptor;
+import com.singularity.ee.agent.appagent.services.transactionmonitor.http.correlation.HTTPHost;
+import com.singularity.ee.agent.appagent.services.transactionmonitor.http.correlation.HttpHostUtil;
+import com.singularity.ee.agent.appagent.services.transactionmonitor.spi.ICurrentTransactionContext;
+import com.singularity.ee.agent.util.reflect.ReflectionException;
+import com.singularity.ee.agent.util.reflect.ReflectionUtility;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Created by stefan.marx on 16.02.15.
  */
-public class SimpleExitInterceptor extends AFastTrackedMethodInterceptor{
+public class SimpleExitInterceptor extends AHTTPCorrelationInterceptor{
     private static final int _interceptorId = FastInterceptorClassRegistryBoot.getNewInterceptorId();
 
     public SimpleExitInterceptor() {
@@ -17,35 +30,16 @@ public class SimpleExitInterceptor extends AFastTrackedMethodInterceptor{
     }
 
     @Override
-    public Object onMethodBeginTracked(Object invokedObject, String className, String methodName,
-                                       Object[] paramValues, int transformationId) {
-        System.out.print("INTERCEPTTED !!!!!!!!!!");
-        ITransactionDemarcator dem = JavaAgent.getInstance().getTransactionDelegate();
-
-        String threadName = Thread.currentThread().getName();
-        int num = Integer.parseInt(threadName.split("-")[1]);
-        int n2 = (num/5);
-
-
-        String name = "TransBlock-"+(n2*5)+"--"+((n2+1)*5);
-        System.out.print("Starting Trans: " + name);
-        dem.beginOriginatingTransactionAndAddCurrentThread(name, null);
-        System.out.println("   --- ST:" + dem.getUniqueIdentifierForTransaction());
-
-        return "STATE";
+    protected HTTPHost getHostAndPortInfo(Object o, String s, String s2, Object[] objects) {
+        System.out.println("EXIT");
+        return new HTTPHost("http","myHostNAme.com",80,"nope/nodder/nuun","nope=kdk");
     }
 
     @Override
-    public  void onMethodEndTracked(Object state, Object invokedObject, String className, String methodName,
-                                            Object[] paramValues, Throwable thrownException, Object returnValue, int transformationId){
-
-
-        ITransactionDemarcator dem = JavaAgent.getInstance().getTransactionDelegate();
-        System.out.println("EN:"+dem.getUniqueIdentifierForTransaction());
-
-        dem.endOriginatingTransactionAndRemoveCurrentThread();
-
+    protected void propogateTransactionContext(Object o, String s, String s2, Object[] objects, Throwable throwable, Object o2, ICurrentTransactionContext iCurrentTransactionContext, int i) {
+        return;
     }
+
 
     @Override
     public int getInterceptorId() {
@@ -58,17 +52,19 @@ public class SimpleExitInterceptor extends AFastTrackedMethodInterceptor{
 
     @Override
     public String getName() {
-        return "SimpleTransactionInterceptor";
+        return "SimpleTransactionExitInterceptor";
     }
 
     @Override
     public String getDescription() {
-        return "SimpleTransactionInterceptor : NOPE";
+        return "SimpleTransactionExitInterceptor : NOPE";
     }
-
 
     @Override
-    public boolean shouldCallOnMethodEnd() {
+    protected boolean isResponseTimeAndErrorReporter() {
         return true;
     }
+
+
+
 }

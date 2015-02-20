@@ -35,7 +35,7 @@ public class TestInstrumentationService implements IDynamicService {
     private IDynamicServiceManager _svcManager;
     private IServiceContext _ctx;
     private Logger logger;
-    private TestServiceController _controller;
+    private InstrumentationServiceController _controller;
 
     @Override
     public void setDynamicServiceManager(IDynamicServiceManager iDynamicServiceManager) {
@@ -65,7 +65,7 @@ public class TestInstrumentationService implements IDynamicService {
 
     @Override
     public void start() throws ServiceStartException {
-        _controller = new TestServiceController(this);
+        _controller = new InstrumentationServiceController(this);
 
         try
         {
@@ -85,7 +85,7 @@ public class TestInstrumentationService implements IDynamicService {
         Hashtable<String, String> onProps = new Hashtable<String, String>();
 
         onProps.put(IDynamicServiceManager.MBEAN_TYPE_KEY,
-                "TestService");
+                "InstrumentationService");
 
         ObjectName on = new ObjectName(IDynamicServiceManager.DOMAIN_NAME,      // create the ObjectName for the MBean
                 onProps);

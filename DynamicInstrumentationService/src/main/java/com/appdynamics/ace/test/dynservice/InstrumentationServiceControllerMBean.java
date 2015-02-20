@@ -7,4 +7,8 @@ import com.singularity.ee.agent.appagent.kernel.spi.IDynamicMBeanBase;
  */
 public interface InstrumentationServiceControllerMBean extends IDynamicMBeanBase {
 
+    public String showServices();
+    public boolean instrumentClass();
+    public boolean instrumentExitClass();
+
 }

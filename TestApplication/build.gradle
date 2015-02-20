@@ -1,0 +1,12 @@
+apply plugin: "application"
+
+
+// Specify the Application settings
+applicationName = 'TestApp'
+mainClassName = "de.appdynamics.ace.serviceTest.app.Main"
+applicationDefaultJvmArgs = ["-Xms50m","-Xmx50m"]
+
+dependencies{
+    compile 'com.appdynamics.ace.cli:CommandFramework:1.1'
+    compile 'org.apache.httpcomponents:httpclient:4.0'
+}

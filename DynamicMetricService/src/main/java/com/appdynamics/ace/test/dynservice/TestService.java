@@ -19,6 +19,7 @@ import java.util.Hashtable;
  */
 public class TestService implements IDynamicService {
     private IServiceConfig _cfg;
+    private JMXReporter _jmx;
 
     public IDynamicServiceManager getSvcManager() {
         return _svcManager;
@@ -79,6 +80,9 @@ public class TestService implements IDynamicService {
                     e);
         }
 
+        _jmx = new JMXReporter();
+        _jmx.startReporting();
+
     }
 
     private ObjectName createObjectName() throws MalformedObjectNameException {
@@ -101,6 +105,7 @@ public class TestService implements IDynamicService {
 
     @Override
     public void stop() throws ServiceStopException {
+        _jmx.stopReporting();
 
     }
 
